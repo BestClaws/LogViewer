@@ -12,7 +12,7 @@ impl LogViewer {
     pub fn new() -> Self {
         Self {
             search_query: "".to_string(),
-            status_bar_infos: vec![String::from("test")],
+            status_bar_infos: vec![String::from("indexing"), String::from("searching")],
         }
     }
 
@@ -22,7 +22,7 @@ impl LogViewer {
                 let label_response = ui.label(info);
                 ui.add(
                     egui::widgets::Spinner::new()
-                        .size(label_response.intrinsic_size.unwrap().x * 0.6)
+                        .size(label_response.intrinsic_size.unwrap().y)
                         .color("#a1a1a1".hex_color()),
                 );
             });
