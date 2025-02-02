@@ -2,7 +2,7 @@ mod log_viewer;
 mod text_edit;
 mod string_ext;
 
-use egui::ViewportBuilder;
+use egui::{Style, ViewportBuilder};
 use crate::log_viewer::LogViewer;
 
 const APP_NAME: &'static str = "LogViewer";
@@ -20,6 +20,11 @@ fn main() -> eframe::Result {
        APP_NAME,
        native_options,
        Box::new(|cc| {
+           cc.egui_ctx.set_style(Style {
+               visuals: egui::Visuals::light(),
+               ..Default::default()
+           });
+           cc.egui_ctx.set_zoom_factor(1.2);
            Ok(Box::new(LogViewer::new()))
        })
     )

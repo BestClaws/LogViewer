@@ -1,0 +1,2 @@
+Recevived API Request URI=https://foo.com/v1/bar/res Headers=[a=b, c=d] Body={"a": "b", "c": "d"}
+Completed API Request URI=https://foo.com/v1/bar/res ContentLength=20, ResponseTime=12, Body={"a": "b", "c": "d"}
