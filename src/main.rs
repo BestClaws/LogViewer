@@ -1,4 +1,6 @@
 mod log_viewer;
+mod text_edit;
+mod string_ext;
 
 use egui::ViewportBuilder;
 use crate::log_viewer::LogViewer;
