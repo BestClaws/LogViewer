@@ -13,3 +13,4 @@ serde_json = "*"
 tokio = { version = "*", features = ["full"]}
 eframe = "*"
 tantivy = "0.22.0"
+egui_table = "0.2.0"

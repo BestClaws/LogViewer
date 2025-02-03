@@ -1,5 +1,6 @@
 use crate::indexer::Indexer;
 use crate::string_ext::StringExt;
+use eframe::epaint::text::TextWrapMode;
 use eframe::{App, Frame};
 use egui::{Context, Ui};
 use egui_extras::{Column, TableBuilder};
@@ -24,7 +25,6 @@ impl LogViewer {
     }
 
     fn status_bar_ui(&mut self, ctx: &Context, ui: &mut Ui) {
-        
         ui.horizontal(|ui| {
             ui.label(format!("fps: {}", 1000 / self.t.elapsed().as_millis()));
             self.t = Instant::now();
@@ -42,27 +42,7 @@ impl LogViewer {
     fn search_widget_ui(&mut self, ui: &mut Ui) {
         // search widget
 
-        // let result = ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-        //     // Toggle the `show_plaintext` bool with a button:
-        //     let response = ui
-        //         .add(egui::SelectableLabel::new(show_plaintext, "👁"))
-        //         .on_hover_text("Show/hide password");
-        // 
-        //     if response.clicked() {
-        //         show_plaintext = !show_plaintext;
-        //     }
-        // 
-        //     // Show the password field:
-        //     ui.add_sized(
-        //         ui.available_size(),
-        //         egui::TextEdit::singleline(password).password(!show_plaintext),
-        //     );
-        // });
-        
-        let hor = ui.horizontal(|ui| {
-            let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
-                .background_color("#aeaeae".hex_color());
-            ui.add(search_widget);
+        let result = ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
             if ui.button("search").clicked() {
                 let mut indexer = Indexer::new();
                 self.results = indexer
@@ -74,49 +54,68 @@ impl LogViewer {
                 let mut indexer = Indexer::new();
                 indexer.index_logfile();
             }
+
+            let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
+                .background_color("#f8f8f8".hex_color())
+                .hint_text(egui::RichText::new("Search here").color("#888888".hex_color()));
+            let search_widget = ui.add_sized([ui.available_width(), 30.], search_widget);
+            
+            
+            if search_widget.has_focus() && ui.input::<bool>(|i| {
+                i.key_pressed(egui::Key::Enter)
+            }) {
+
+                let mut indexer = Indexer::new();
+                self.results = indexer
+                    .query(self.search_query.clone())
+                    .collect::<Vec<String>>();
+            }
         });
     }
 
     fn search_results_ui(ui: &mut Ui, results: &Vec<String>) {
-        // search results
-        let mut table = TableBuilder::new(ui)
-            .striped(true)
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::auto()).resizable(true)
-            .column(
-                Column::remainder()
-                    .at_least(40.0)
-                    .clip(false)
-                    .resizable(true),
-            )
-            .min_scrolled_height(0.0);
+        let frame = egui::frame::Frame {
+            fill: "#f8f8f8".hex_color(),
+            inner_margin: egui::Margin::same(4.),
+            rounding: egui::Rounding::same(4.),
+            ..Default::default()
+        };
 
-        table
-            .header(20.0, |mut header| {
-                header.col(|ui| {
-                    ui.strong("Timestamp");
+        frame.show(ui, |ui| {
+            // search results
+            let available_width = ui.available_width() / 10.;
+            let mut table = TableBuilder::new(ui)
+                .striped(true)
+                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                .column(Column::auto())
+                .resizable(true)
+                .column(Column::remainder().clip(true).resizable(true))
+                .auto_shrink(true)
+                .min_scrolled_height(0.0);
+
+            table
+                .header(20.0, |mut header| {
+                    header.col(|ui| {
+                        ui.strong("Timestamp");
+                    });
+                    header.col(|ui| {
+                        ui.strong("Search Results");
+                    });
+                })
+                .body(|mut body| {
+                    body.rows(20., results.len(), |mut row| {
+                        let row_index = row.index();
+                        let val = &results[row_index];
+                        row.col(|ui| {
+                            ui.label("00:00:00");
+                        });
+                        let (a, b) = row.col(|ui| {
+                            let val_row = egui::Label::new(val).wrap_mode(TextWrapMode::Wrap);
+                            ui.add(val_row);
+                        });
+                    });
                 });
-                header.col(|ui| {
-                    ui.strong("Search Results");
-                });
-            })
-            .body(|mut body| {
-                    
-                    
-                   body.rows(20., results.len(), |mut row| {
-                       let row_index = row.index();
-                       let val = &results[row_index];
-                       row.col(|ui| {
-                           ui.label("00:00:00");
-                       });
-                       row.col(|ui| {
-                           ui.label(val);
-                       });
-                       
-                   });
-                    
-            
-            });
+        });
     }
 }
 

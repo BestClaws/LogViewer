@@ -60,7 +60,7 @@ impl Indexer {
         let searcher = reader.searcher();
         let query_parser = QueryParser::for_index(&index, vec![self.timestamp, self.raw]);
         let query = query_parser.parse_query(&query).unwrap();
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(1000)).unwrap();
+        let top_docs = searcher.search(&query, &TopDocs::with_limit(1_000)).unwrap();
         
         
          top_docs.into_iter().map(move |(_, doc_address)| {
