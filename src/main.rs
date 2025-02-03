@@ -1,6 +1,8 @@
 mod log_viewer;
 mod text_edit;
 mod string_ext;
+mod log_loader;
+mod indexer;
 
 use egui::{Style, ViewportBuilder};
 use crate::log_viewer::LogViewer;
@@ -21,6 +23,7 @@ fn main() -> eframe::Result {
        native_options,
        Box::new(|cc| {
            cc.egui_ctx.set_style(Style {
+               
                visuals: egui::Visuals::light(),
                ..Default::default()
            });

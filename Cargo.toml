@@ -12,3 +12,4 @@ serde = "*"
 serde_json = "*"
 tokio = { version = "*", features = ["full"]}
 eframe = "*"
+tantivy = "0.22.0"

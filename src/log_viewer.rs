@@ -1,18 +1,23 @@
+use crate::indexer::Indexer;
 use crate::string_ext::StringExt;
 use eframe::{App, Frame};
-use egui::{Context, Ui};
+use egui::{Context, Stroke, Ui};
+use egui::style::TextCursorStyle;
 use egui_extras::{Column, TableBuilder};
 
 pub struct LogViewer {
     search_query: String,
     status_bar_infos: Vec<String>,
+    results: Vec<String>,
 }
 
 impl LogViewer {
     pub fn new() -> Self {
+        println!("no");
         Self {
             search_query: "".to_string(),
             status_bar_infos: vec![String::from("indexing"), String::from("searching")],
+            results: vec![],
         }
     }
 
@@ -31,14 +36,28 @@ impl LogViewer {
 
     fn search_widget_ui(&mut self, ui: &mut Ui) {
         // search widget
-        let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
-            .background_color("#fefefe".hex_color());
-        ui.add_sized([ui.available_width(), 50.], search_widget);
+        ui.horizontal(|ui| {
+            let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
+                .background_color("#aeaeae".hex_color());
+            // .background_color("#fefefe".hex_color());
+            ui.add(search_widget);
+            if ui.button("search").clicked() {
+                let mut indexer = Indexer::new();
+                self.results =  indexer.query(self.search_query.clone()).collect::<Vec<String>>();
+                
+            }
+
+            if ui.button("Index").clicked() {
+                let mut indexer = Indexer::new();
+                indexer.index_logfile();
+
+            }
+        });
     }
 
-    fn search_results_ui(ui: &mut Ui) {
+    fn search_results_ui(ui: &mut Ui, results: &Vec<String>) {
         // search results
-        egui::ScrollArea::both().show(ui, |ui| {
+        // egui::ScrollArea::both().show(ui, |ui| {
             let mut table = TableBuilder::new(ui)
                 .striped(true)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
@@ -61,18 +80,18 @@ impl LogViewer {
                     });
                 })
                 .body(|mut body| {
-                    for i in 1..100 {
+                    for i in results {
                         body.row(20., |mut row| {
                             row.col(|ui| {
                                 ui.label("00:00:00");
                             });
                             row.col(|ui| {
-                                ui.label("hello how are you and what are you doing");
+                                ui.label(i);
                             });
                         });
                     }
                 });
-        });
+        // });
     }
 }
 
@@ -99,7 +118,7 @@ impl App for LogViewer {
             .show(ctx, |ui| {
                 ui.vertical(|ui| {
                     self.search_widget_ui(ui);
-                    Self::search_results_ui(ui);
+                    Self::search_results_ui(ui, &self.results);
                 });
             });
     }
