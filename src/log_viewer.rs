@@ -41,10 +41,27 @@ impl LogViewer {
 
     fn search_widget_ui(&mut self, ui: &mut Ui) {
         // search widget
-        ui.horizontal(|ui| {
+
+        // let result = ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        //     // Toggle the `show_plaintext` bool with a button:
+        //     let response = ui
+        //         .add(egui::SelectableLabel::new(show_plaintext, "👁"))
+        //         .on_hover_text("Show/hide password");
+        // 
+        //     if response.clicked() {
+        //         show_plaintext = !show_plaintext;
+        //     }
+        // 
+        //     // Show the password field:
+        //     ui.add_sized(
+        //         ui.available_size(),
+        //         egui::TextEdit::singleline(password).password(!show_plaintext),
+        //     );
+        // });
+        
+        let hor = ui.horizontal(|ui| {
             let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
                 .background_color("#aeaeae".hex_color());
-            // .background_color("#fefefe".hex_color());
             ui.add(search_widget);
             if ui.button("search").clicked() {
                 let mut indexer = Indexer::new();
@@ -65,7 +82,7 @@ impl LogViewer {
         let mut table = TableBuilder::new(ui)
             .striped(true)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::auto())
+            .column(Column::auto()).resizable(true)
             .column(
                 Column::remainder()
                     .at_least(40.0)

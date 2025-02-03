@@ -1,6 +1,6 @@
 use crate::log_loader;
 use tantivy::query::QueryParser;
-use tantivy::schema::{Field, Schema, SchemaBuilder, STORED, TEXT};
+use tantivy::schema::{Field, Schema, SchemaBuilder, Value, STORED, TEXT};
 use tantivy::{Document, Index, IndexReader, IndexWriter, ReloadPolicy, Searcher, TantivyDocument};
 use tantivy::collector::TopDocs;
 
@@ -65,7 +65,7 @@ impl Indexer {
         
          top_docs.into_iter().map(move |(_, doc_address)| {
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address).unwrap();
-            retrieved_doc.to_json(&self.schema)
+            retrieved_doc.get_first(self.raw).unwrap().as_str().unwrap().to_string()
         })
         
         
