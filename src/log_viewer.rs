@@ -2,7 +2,7 @@ use crate::indexer::Indexer;
 use crate::string_ext::StringExt;
 use eframe::epaint::text::TextWrapMode;
 use eframe::{App, Frame};
-use egui::{Context, Ui};
+use egui::{Context, Stroke, Ui};
 use egui_extras::{Column, TableBuilder};
 use tokio::time::Instant;
 
@@ -33,7 +33,7 @@ impl LogViewer {
                 ui.add(
                     egui::widgets::Spinner::new()
                         .size(label_response.intrinsic_size.unwrap().y)
-                        .color("#a1a1a1".hex_color()),
+                        .color("#827156".hex_color()),
                 );
             }
         });
@@ -55,73 +55,90 @@ impl LogViewer {
                 indexer.index_logfile();
             }
 
-            let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
-                .background_color("#f8f8f8".hex_color())
-                .hint_text(egui::RichText::new("Search here").color("#888888".hex_color()));
-            let search_widget = ui.add_sized([ui.available_width(), 30.], search_widget);
-            
-            
-            if search_widget.has_focus() && ui.input::<bool>(|i| {
-                i.key_pressed(egui::Key::Enter)
-            }) {
+            let frame = egui::frame::Frame {
+                stroke: Stroke::from((2f32, "#555555".hex_color())),
+                rounding: egui::Rounding::same(4.),
+                ..Default::default()
+            };
 
-                let mut indexer = Indexer::new();
-                self.results = indexer
-                    .query(self.search_query.clone())
-                    .collect::<Vec<String>>();
-            }
+            frame.show(ui, |ui| {
+
+                let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
+                    .background_color("#3b3b3b".hex_color())
+                    .hint_text(egui::RichText::new("Search here").color("#2c2c2c".hex_color()));
+                let search_widget = ui.add_sized([ui.available_width(), 30.], search_widget);
+
+
+                if search_widget.has_focus() && ui.input::<bool>(|i| {
+                    i.key_pressed(egui::Key::Enter)
+                }) {
+
+                    let mut indexer = Indexer::new();
+                    self.results = indexer
+                        .query(self.search_query.clone())
+                        .collect::<Vec<String>>();
+                }
+            });
+
+
         });
     }
 
     fn search_results_ui(ui: &mut Ui, results: &Vec<String>) {
         let frame = egui::frame::Frame {
-            fill: "#f8f8f8".hex_color(),
+            fill: "#3b3b3b".hex_color(),
             inner_margin: egui::Margin::same(4.),
             rounding: egui::Rounding::same(4.),
             ..Default::default()
         };
-
         frame.show(ui, |ui| {
             // search results
-            let available_width = ui.available_width() / 10.;
-            let mut table = TableBuilder::new(ui)
-                .striped(true)
-                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::auto())
-                .resizable(true)
-                .column(Column::remainder().clip(true).resizable(true))
-                .auto_shrink(true)
-                .min_scrolled_height(0.0);
+            egui::ScrollArea::both().show(ui, |ui| {
+                let mut table = TableBuilder::new(ui)
+                    .striped(true)
+                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                    .column(Column::auto())
+                    .resizable(true)
+                    .column(Column::remainder().clip(false).resizable(true))
+                    .auto_shrink(true)
+                    .min_scrolled_height(0.0);
 
-            table
-                .header(20.0, |mut header| {
-                    header.col(|ui| {
-                        ui.strong("Timestamp");
-                    });
-                    header.col(|ui| {
-                        ui.strong("Search Results");
-                    });
-                })
-                .body(|mut body| {
-                    body.rows(20., results.len(), |mut row| {
-                        let row_index = row.index();
-                        let val = &results[row_index];
-                        row.col(|ui| {
-                            ui.label("00:00:00");
+                table
+                    .header(20.0, |mut header| {
+                        header.col(|ui| {
+                            ui.strong("Timestamp");
                         });
-                        let (a, b) = row.col(|ui| {
-                            let val_row = egui::Label::new(val).wrap_mode(TextWrapMode::Wrap);
-                            ui.add(val_row);
+                        header.col(|ui| {
+                            ui.strong("Search Results");
+                        });
+                    })
+                    .body(|mut body| {
+                        body.rows(20., results.len(), |mut row| {
+                            let row_index = row.index();
+                            let val = &results[row_index];
+                            row.col(|ui| {
+                                ui.label("00:00:00");
+                            });
+                            let (a, b) = row.col(|ui| {
+                                let val_row = egui::Label::new(val).wrap_mode(TextWrapMode::Wrap);
+                                ui.add(val_row);
+                            });
                         });
                     });
-                });
+            })
         });
     }
 }
 
 impl App for LogViewer {
     fn update(&mut self, ctx: &Context, frame: &mut Frame) {
-        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
+        egui::TopBottomPanel::bottom("status_bar")
+            .frame(egui::frame::Frame {
+                fill: "#2c2c2c".hex_color(),
+                stroke: Stroke::from((0f32, "#555555".hex_color())),
+                ..Default::default()
+            })
+            .show(ctx, |ui| {
             ui.horizontal(|ui| {
                 self.status_bar_ui(ctx, ui);
             });
@@ -129,8 +146,8 @@ impl App for LogViewer {
         // central panel.
         egui::CentralPanel::default()
             .frame(egui::frame::Frame {
-                fill: "#c1c1c1".hex_color(),
-                inner_margin: egui::Margin::symmetric(5.0, 5.0),
+                fill: "#2c2c2c".hex_color(),
+                inner_margin: egui::Margin::symmetric(10., 10.),
                 rounding: egui::Rounding {
                     nw: 1.0,
                     ne: 1.0,
@@ -142,6 +159,7 @@ impl App for LogViewer {
             .show(ctx, |ui| {
                 ui.vertical(|ui| {
                     self.search_widget_ui(ui);
+                    ui.add_space(10.0);
                     Self::search_results_ui(ui, &self.results);
                 });
             });

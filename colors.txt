@@ -1,0 +1,4 @@
+backest background: #2c2c2c #2c2c2c
+search bar bg: #3b3b3b  #3b3b3b (#555555)
+
+2nd shade : #2f2f37

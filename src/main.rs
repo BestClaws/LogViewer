@@ -24,7 +24,7 @@ fn main() -> eframe::Result {
        Box::new(|cc| {
            cc.egui_ctx.set_style(Style {
                
-               visuals: egui::Visuals::light(),
+               visuals: egui::Visuals::dark(),
                ..Default::default()
            });
            cc.egui_ctx.set_zoom_factor(1.2);
