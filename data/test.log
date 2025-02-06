@@ -1,2 +1,4 @@
-Recevived API Request URI=https://foo.com/v1/bar/res Headers=[a=b, c=d] Body={"a": "b", "c": "d"}
-Completed API Request URI=https://foo.com/v1/bar/res ContentLength=20, ResponseTime=12, Body={"a": "b", "c": "d"}
+2025-02-06 22:37:17.806 level=INFO logger=FooLogger, requestId=abc, message=failed
+2025-02-06 22:37:18.806 level=INFO logger=FooLogger, requestId=abc, message=API Request completed. URI=/v1/foo ContentLength=20
+2025-02-06 22:37:19.806 level=INFO logger=FooLogger, requestId=def, message=success
+2025-02-06 22:37:20.806 level=INFO logger=FooLogger, requestId=def, message=API Request completed. URI=/v1/foo ContentLength=20
