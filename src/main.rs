@@ -4,6 +4,7 @@ mod string_ext;
 mod log_loader;
 mod indexer;
 
+use std::fs::DirBuilder;
 use egui::{Style, ViewportBuilder};
 use crate::log_viewer::LogViewer;
 
@@ -11,6 +12,9 @@ const APP_NAME: &'static str = "LogViewer";
 
 
 fn main() -> eframe::Result {
+    
+    // prepare directories
+    DirBuilder::new().recursive(true).create("data/indexes").unwrap();
 
     let native_options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
@@ -23,7 +27,6 @@ fn main() -> eframe::Result {
        native_options,
        Box::new(|cc| {
            cc.egui_ctx.set_style(Style {
-               
                visuals: egui::Visuals::dark(),
                ..Default::default()
            });
