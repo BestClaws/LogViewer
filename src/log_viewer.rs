@@ -5,6 +5,8 @@ use eframe::{App, Frame};
 use egui::{Context, Stroke, Ui};
 use egui_extras::{Column, TableBuilder};
 use tokio::time::Instant;
+use crate::ui_ext::UiExt;
+
 
 pub struct LogViewer {
     t: Instant,
@@ -55,30 +57,17 @@ impl LogViewer {
                 indexer.index_logfile();
             }
 
-            let frame = egui::frame::Frame {
-                stroke: Stroke::from((2f32, "#555555".hex_color())),
-                rounding: egui::Rounding::same(4.),
-                ..Default::default()
-            };
+            let search_widget = ui.e_text_edit(&mut self.search_query);
 
-            frame.show(ui, |ui| {
+            if search_widget.has_focus() && ui.input::<bool>(|i| {
+                i.key_pressed(egui::Key::Enter)
+            }) {
 
-                let search_widget = egui::widgets::TextEdit::multiline(&mut self.search_query)
-                    .background_color("#3b3b3b".hex_color())
-                    .hint_text(egui::RichText::new("Search here").color("#2c2c2c".hex_color()));
-                let search_widget = ui.add_sized([ui.available_width(), 30.], search_widget);
-
-
-                if search_widget.has_focus() && ui.input::<bool>(|i| {
-                    i.key_pressed(egui::Key::Enter)
-                }) {
-
-                    let mut indexer = Indexer::new();
-                    self.results = indexer
-                        .query(self.search_query.clone())
-                        .collect::<Vec<String>>();
-                }
-            });
+                let mut indexer = Indexer::new();
+                self.results = indexer
+                    .query(self.search_query.clone())
+                    .collect::<Vec<String>>();
+            }
 
 
         });

@@ -3,6 +3,7 @@ mod text_edit;
 mod string_ext;
 mod log_loader;
 mod indexer;
+mod ui_ext;
 
 use std::fs::DirBuilder;
 use egui::{Style, ViewportBuilder};
