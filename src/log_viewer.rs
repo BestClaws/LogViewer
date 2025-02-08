@@ -1,20 +1,22 @@
-use crate::colors;
 use crate::indexer::Indexer;
-use crate::string_ext::StringExt;
-use crate::ui_ext::UiExt;
+use crate::{animal, colors};
 use eframe::epaint::text::TextWrapMode;
 use eframe::{App, Frame};
-use egui::{Context, Style, TextStyle, Theme, Ui};
+use egui::{Context, Ui};
 use egui_extras::{Column, TableBuilder};
 use std::collections::HashMap;
 use tokio::time::Instant;
+use crate::animal::EatSpit;
+use crate::ext::string_ext::StringExt;
+use crate::ext::ui_ext::UiExt;
 
 pub struct LogViewer {
     t: Instant,
     search_query: String,
     status_bar_infos: Vec<String>,
-    results: Vec<HashMap<String, String>>,
+    results: EatSpit<Vec<HashMap<String, String>>>,
 }
+
 
 impl LogViewer {
     pub(crate) fn new(cc: &eframe::CreationContext<'_>) -> Self {
@@ -24,13 +26,14 @@ impl LogViewer {
             t: Instant::now(),
             search_query: "".to_string(),
             status_bar_infos: vec![String::from("indexing"), String::from("searching")],
-            results: vec![],
+            results: EatSpit::new(),
         }
     }
 
     fn status_bar_ui(&mut self, ctx: &Context, ui: &mut Ui) {
         ui.horizontal(|ui| {
-            ui.style_mut().visuals.override_text_color = Some(colors::SECONDARY_TEXT_STRONG.hex_color());
+            ui.style_mut().visuals.override_text_color =
+                Some(colors::SECONDARY_TEXT_STRONG.hex_color());
             ui.label(format!("fps: {}", 1000 / self.t.elapsed().as_millis()));
             self.t = Instant::now();
             for info in &self.status_bar_infos {
@@ -48,29 +51,35 @@ impl LogViewer {
         // search widget
 
         let result = ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
+            let tx = self.results.mouth();
             if ui.button("search").clicked() {
-                let mut indexer = Indexer::new();
-                self.results = indexer
-                    .query(self.search_query.clone())
-                    .into_iter()
-                    .collect::<Vec<HashMap<String, String>>>();
+                let query = self.search_query.clone();
+                tokio::spawn(async move {
+                    let mut indexer = Indexer::new();
+                    let result = indexer
+                        .query(query)
+                        .into_iter()
+                        .collect::<Vec<HashMap<String, String>>>();
+                    match tx.send(result).await {
+                        Ok(_) => {}
+                        Err(e) => {
+                            println!("Error sending search result: {:?}", e);
+                        }
+                    }
+                });
             }
+
+      
 
             if ui.button("Index").clicked() {
                 let mut indexer = Indexer::new();
                 indexer.index_logfile();
             }
-
-            let search_widget = ui.e_text_edit(&mut self.search_query);
-
-            if search_widget.has_focus() && ui.input::<bool>(|i| i.key_pressed(egui::Key::Enter)) {
-                let mut indexer = Indexer::new();
-                self.results = indexer.query(self.search_query.clone());
-            }
+            ui.e_text_edit(&mut self.search_query);
         });
     }
 
-    fn search_results_ui(ui: &mut Ui, results: &Vec<HashMap<String, String>>) {
+    fn search_results_ui(ui: &mut Ui, results: &mut EatSpit<Vec<HashMap<String, String>>>) {
         let frame = egui::frame::Frame {
             fill: colors::BG_CONTAINER.hex_color(),
             inner_margin: egui::Margin::same(4.),
@@ -84,11 +93,11 @@ impl LogViewer {
                     .striped(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
-                if results.is_empty() {
-
+                if !results.available() {
                     ui.label("No results");
                     return;
                 }
+                let results = results.val();
                 let mut columns: Vec<&String> = results.get(0).unwrap().keys().collect();
                 columns.sort();
                 builder = builder.column(Column::remainder()).resizable(true);
@@ -146,7 +155,7 @@ impl App for LogViewer {
                 ui.vertical(|ui| {
                     self.search_widget_ui(ui);
                     ui.add_space(10.0);
-                    Self::search_results_ui(ui, &self.results);
+                    Self::search_results_ui(ui, &mut self.results);
                 });
             });
     }

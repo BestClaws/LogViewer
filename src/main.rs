@@ -1,19 +1,24 @@
+mod animal;
 mod colors;
+mod ext;
 mod indexer;
 mod log_loader;
 mod log_viewer;
-mod string_ext;
 mod text_edit;
-mod ui_ext;
 
+use crate::ext::string_ext::StringExt;
 use crate::log_viewer::LogViewer;
-use crate::string_ext::StringExt;
-use egui::{Stroke, Style, TextStyle, Theme, ViewportBuilder, Visuals};
+use egui::{Stroke, Style, Theme, ViewportBuilder};
 use std::fs::DirBuilder;
 
 const APP_NAME: &'static str = "LogViewer";
 
 fn main() -> eframe::Result {
+    let async_runtime = tokio::runtime::Runtime::new().unwrap();
+
+    // keep the reactor running
+    let _enter = async_runtime.enter();
+
     // prepare directories
     DirBuilder::new()
         .recursive(true)
@@ -41,7 +46,6 @@ fn setup_custom_style(ctx: &egui::Context) {
     ctx.style_mut_of(Theme::Light, use_endfield_theme);
 }
 
-
 fn use_endfield_theme(style: &mut Style) {
     style.visuals.override_text_color = Some(colors::PRIMARY_TEXT.hex_color());
     style.visuals.extreme_bg_color = colors::BG.hex_color();
@@ -49,12 +53,10 @@ fn use_endfield_theme(style: &mut Style) {
     style.visuals.widgets.inactive.bg_stroke = Stroke {
         width: 1.,
         color: colors::SHADE2.hex_color(),
-        
     };
-    
+
     style.visuals.selection.stroke = Stroke {
         width: 1.,
         color: colors::SHADE2.hex_color(),
     }
-
 }

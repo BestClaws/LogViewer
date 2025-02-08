@@ -1,5 +1,5 @@
 use crate::colors;
-use crate::string_ext::StringExt;
+use crate::ext::string_ext::StringExt;
 use egui::{Response, Ui};
 
 pub(crate) trait UiExt {
