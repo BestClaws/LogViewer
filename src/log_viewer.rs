@@ -72,7 +72,7 @@ impl LogViewer {
 
       
 
-            if ui.button("Index").clicked() {
+            if ui.button("Index ".to_owned() + icons::ICON_MANAGE_SEARCH).clicked() {
                 let mut indexer = Indexer::new();
                 indexer.index_logfile();
             }
