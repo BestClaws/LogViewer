@@ -5,6 +5,7 @@ use eframe::{App, Frame};
 use egui::{Context, Ui};
 use egui_extras::{Column, TableBuilder};
 use std::collections::HashMap;
+use egui_material_icons::icons;
 use tokio::time::Instant;
 use crate::animal::EatSpit;
 use crate::ext::string_ext::StringExt;
@@ -26,7 +27,7 @@ impl LogViewer {
             t: Instant::now(),
             search_query: "".to_string(),
             status_bar_infos: vec![String::from("indexing"), String::from("searching")],
-            results: EatSpit::new(),
+            results: EatSpit::new(vec![]),
         }
     }
 
@@ -52,7 +53,7 @@ impl LogViewer {
 
         let result = ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
             let tx = self.results.mouth();
-            if ui.button("search").clicked() {
+            if ui.button("search ".to_owned() + icons::ICON_SEARCH).clicked() {
                 let query = self.search_query.clone();
                 tokio::spawn(async move {
                     let mut indexer = Indexer::new();
@@ -79,11 +80,11 @@ impl LogViewer {
         });
     }
 
-    fn search_results_ui(ui: &mut Ui, results: &mut EatSpit<Vec<HashMap<String, String>>>) {
+    fn search_results_ui(ui: &mut Ui, res: &mut EatSpit<Vec<HashMap<String, String>>>) {
         let frame = egui::frame::Frame {
             fill: colors::BG_CONTAINER.hex_color(),
-            inner_margin: egui::Margin::same(4.),
-            rounding: egui::Rounding::same(4.),
+            inner_margin: egui::Margin::same(4),
+            corner_radius: egui::CornerRadius::same(4),
             ..Default::default()
         };
         frame.show(ui, |ui| {
@@ -93,11 +94,12 @@ impl LogViewer {
                     .striped(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
-                if !results.available() {
+                
+                let results = res.spit();
+                if results.is_empty() {
                     ui.label("No results");
                     return;
                 }
-                let results = results.val();
                 let mut columns: Vec<&String> = results.get(0).unwrap().keys().collect();
                 columns.sort();
                 builder = builder.column(Column::remainder()).resizable(true);
@@ -146,7 +148,7 @@ impl App for LogViewer {
         // central panel.
         egui::CentralPanel::default()
             .frame(egui::frame::Frame {
-                inner_margin: egui::Margin::symmetric(10., 10.),
+                inner_margin: egui::Margin::symmetric(10, 10),
                 ..Default::default()
             })
             .show(ctx, |ui| {

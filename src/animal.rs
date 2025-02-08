@@ -3,42 +3,31 @@ use tokio::sync::mpsc::error::TryRecvError;
 
 pub struct EatSpit<T> {
     rx: Receiver<T>,
-    val: Option<T>,
+    val: T,
     tx: Sender<T>,
+    gulped: bool,
 }
 
 impl<T> EatSpit<T> {
-    pub fn new() -> Self {
+    pub fn new(default: T) -> Self {
         let (tx, rx) = tokio::sync::mpsc::channel(1);
         EatSpit {
             rx,
             tx,
-            val: None
+            val: default,
+            gulped: false,
         }
     }
-    
-    pub fn val(&mut self) -> &T {
-        self.val.as_mut().unwrap()
-    }
-
-    pub fn val_mut(&mut self) -> &mut T {
-        self.val.as_mut().unwrap()
-    }
-    
     
     pub fn mouth(&mut self) -> Sender<T> {
        self.tx.clone() 
     }
     
-    pub fn available(&mut self) -> bool {
-        if self.val.is_some() {
-            return true;
-        }
+    pub fn spit(&mut self) -> &mut T {
         if let Ok(x) = self.rx.try_recv() {
-            self.val = Some(x);
-            return true;
+            self.val = x;
         } 
         
-        false
+        &mut self.val
     }
 }
