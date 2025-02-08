@@ -1,9 +1,10 @@
+use crate::colors;
 use crate::indexer::Indexer;
 use crate::string_ext::StringExt;
 use crate::ui_ext::UiExt;
 use eframe::epaint::text::TextWrapMode;
 use eframe::{App, Frame};
-use egui::{Context, Stroke, Ui};
+use egui::{Context, Style, TextStyle, Theme, Ui};
 use egui_extras::{Column, TableBuilder};
 use std::collections::HashMap;
 use tokio::time::Instant;
@@ -16,8 +17,9 @@ pub struct LogViewer {
 }
 
 impl LogViewer {
-    pub fn new() -> Self {
-        println!("no");
+    pub(crate) fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+
         Self {
             t: Instant::now(),
             search_query: "".to_string(),
@@ -35,7 +37,7 @@ impl LogViewer {
                 ui.add(
                     egui::widgets::Spinner::new()
                         .size(label_response.intrinsic_size.unwrap().y)
-                        .color("#827156".hex_color()),
+                        .color(colors::YELLOW_ACCENT.hex_color()),
                 );
             }
         });
@@ -49,7 +51,8 @@ impl LogViewer {
                 let mut indexer = Indexer::new();
                 self.results = indexer
                     .query(self.search_query.clone())
-                    .into_iter().collect::<Vec<HashMap<String, String>>>();
+                    .into_iter()
+                    .collect::<Vec<HashMap<String, String>>>();
             }
 
             if ui.button("Index").clicked() {
@@ -68,7 +71,7 @@ impl LogViewer {
 
     fn search_results_ui(ui: &mut Ui, results: &Vec<HashMap<String, String>>) {
         let frame = egui::frame::Frame {
-            fill: "#3b3b3b".hex_color(),
+            fill: colors::SHADE3.hex_color(),
             inner_margin: egui::Margin::same(4.),
             rounding: egui::Rounding::same(4.),
             ..Default::default()
@@ -81,7 +84,9 @@ impl LogViewer {
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
                 if results.is_empty() {
-                   return; 
+                    
+                    ui.label("No results");
+                    return;
                 }
                 let mut columns: Vec<&String> = results.get(0).unwrap().keys().collect();
                 columns.sort();
@@ -123,8 +128,8 @@ impl App for LogViewer {
     fn update(&mut self, ctx: &Context, frame: &mut Frame) {
         egui::TopBottomPanel::bottom("status_bar")
             .frame(egui::frame::Frame {
-                fill: "#2c2c2c".hex_color(),
-                stroke: Stroke::from((0f32, "#555555".hex_color())),
+                fill: colors::FOOTER.hex_color(),
+                // stroke: Stroke::from((0f32, "#555555".hex_color())),
                 ..Default::default()
             })
             .show(ctx, |ui| {
@@ -135,7 +140,7 @@ impl App for LogViewer {
         // central panel.
         egui::CentralPanel::default()
             .frame(egui::frame::Frame {
-                fill: "#2c2c2c".hex_color(),
+                fill: "#ffffff".hex_color(),
                 inner_margin: egui::Margin::symmetric(10., 10.),
                 rounding: egui::Rounding {
                     nw: 1.0,
@@ -146,6 +151,8 @@ impl App for LogViewer {
                 ..Default::default()
             })
             .show(ctx, |ui| {
+                egui::Image::new(egui::include_image!("../assets/app_bg.png"))
+                    .paint_at(ui, ui.ctx().screen_rect());
                 ui.vertical(|ui| {
                     self.search_widget_ui(ui);
                     ui.add_space(10.0);

@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 egui = "*"
-egui_extras = "*"
+egui_extras = { version = "*", features = ["image"] }
 egui_tiles = "*"
 rand = "*"
 serde = "*"
