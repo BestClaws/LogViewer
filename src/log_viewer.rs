@@ -1,18 +1,18 @@
 use crate::indexer::Indexer;
 use crate::string_ext::StringExt;
+use crate::ui_ext::UiExt;
 use eframe::epaint::text::TextWrapMode;
 use eframe::{App, Frame};
 use egui::{Context, Stroke, Ui};
 use egui_extras::{Column, TableBuilder};
+use std::collections::HashMap;
 use tokio::time::Instant;
-use crate::ui_ext::UiExt;
-
 
 pub struct LogViewer {
     t: Instant,
     search_query: String,
     status_bar_infos: Vec<String>,
-    results: Vec<String>,
+    results: Vec<HashMap<String, String>>,
 }
 
 impl LogViewer {
@@ -49,7 +49,7 @@ impl LogViewer {
                 let mut indexer = Indexer::new();
                 self.results = indexer
                     .query(self.search_query.clone())
-                    .collect::<Vec<String>>();
+                    .into_iter().collect::<Vec<HashMap<String, String>>>();
             }
 
             if ui.button("Index").clicked() {
@@ -59,21 +59,14 @@ impl LogViewer {
 
             let search_widget = ui.e_text_edit(&mut self.search_query);
 
-            if search_widget.has_focus() && ui.input::<bool>(|i| {
-                i.key_pressed(egui::Key::Enter)
-            }) {
-
+            if search_widget.has_focus() && ui.input::<bool>(|i| i.key_pressed(egui::Key::Enter)) {
                 let mut indexer = Indexer::new();
-                self.results = indexer
-                    .query(self.search_query.clone())
-                    .collect::<Vec<String>>();
+                self.results = indexer.query(self.search_query.clone());
             }
-
-
         });
     }
 
-    fn search_results_ui(ui: &mut Ui, results: &Vec<String>) {
+    fn search_results_ui(ui: &mut Ui, results: &Vec<HashMap<String, String>>) {
         let frame = egui::frame::Frame {
             fill: "#3b3b3b".hex_color(),
             inner_margin: egui::Margin::same(4.),
@@ -83,35 +76,42 @@ impl LogViewer {
         frame.show(ui, |ui| {
             // search results
             egui::ScrollArea::both().show(ui, |ui| {
-                let mut table = TableBuilder::new(ui)
+                let mut builder = TableBuilder::new(ui)
                     .striped(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::auto())
-                    .resizable(true)
-                    .column(Column::remainder().clip(false).resizable(true))
-                    .auto_shrink(true)
-                    .min_scrolled_height(0.0);
+                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
-                table
+                if results.is_empty() {
+                   return; 
+                }
+                let mut columns: Vec<&String> = results.get(0).unwrap().keys().collect();
+                columns.sort();
+
+                for column in 0..columns.len() {
+                    builder = builder.column(Column::auto()).resizable(true);
+                }
+
+                builder
+                    .auto_shrink(true)
+                    .min_scrolled_height(0.0)
                     .header(20.0, |mut header| {
-                        header.col(|ui| {
-                            ui.strong("Timestamp");
-                        });
-                        header.col(|ui| {
-                            ui.strong("Search Results");
-                        });
+                        for &columnName in &columns {
+                            header.col(|ui| {
+                                ui.strong(columnName);
+                            });
+                        }
                     })
                     .body(|mut body| {
-                        body.rows(20., results.len(), |mut row| {
-                            let row_index = row.index();
-                            let val = &results[row_index];
-                            row.col(|ui| {
-                                ui.label("00:00:00");
-                            });
-                            let (a, b) = row.col(|ui| {
-                                let val_row = egui::Label::new(val).wrap_mode(TextWrapMode::Wrap);
-                                ui.add(val_row);
-                            });
+                        body.rows(20., results.len(), |mut table_row| {
+                            let row_index = table_row.index();
+                            let result_row = &results[row_index];
+                            for &columnName in &columns {
+                                table_row.col(|ui| {
+                                    let val_row =
+                                        egui::Label::new(result_row.get(columnName).unwrap())
+                                            .wrap_mode(TextWrapMode::Wrap);
+                                    ui.add(val_row);
+                                });
+                            }
                         });
                     });
             })
@@ -128,10 +128,10 @@ impl App for LogViewer {
                 ..Default::default()
             })
             .show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                self.status_bar_ui(ctx, ui);
+                ui.horizontal(|ui| {
+                    self.status_bar_ui(ctx, ui);
+                });
             });
-        });
         // central panel.
         egui::CentralPanel::default()
             .frame(egui::frame::Frame {

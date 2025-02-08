@@ -2,3 +2,37 @@ backest background: #2c2c2c #2c2c2c
 search bar bg: #3b3b3b  #3b3b3b (#555555)
 
 2nd shade : #2f2f37
+
+
+Endfield:
+accents:
+yellow: #fdfd1f
+
+text:
+primary: #545454
+sections text buttons: #383838
+text with bg: #ffffff (bg: #848484)
+text with bg: #fdfd1f (bg: #000000)
+
+title: #141414
+
+scrollbars:
+scrollbar handle: #b2b2b2
+scrollbar container: #ffffff
+
+buttons:
+text: #4b4b4d
+
+cards:
+text color: #d4d4d4
+background color: #383838
+
+shades:
+
+#606060
+#848484
+#d3d3d3
+
+
+footer:
+#1a1a1a
