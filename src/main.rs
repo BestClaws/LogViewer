@@ -8,7 +8,7 @@ mod ui_ext;
 
 use crate::log_viewer::LogViewer;
 use crate::string_ext::StringExt;
-use egui::{Style, TextStyle, Theme, ViewportBuilder, Visuals};
+use egui::{Stroke, Style, TextStyle, Theme, ViewportBuilder, Visuals};
 use std::fs::DirBuilder;
 
 const APP_NAME: &'static str = "LogViewer";
@@ -44,6 +44,17 @@ fn setup_custom_style(ctx: &egui::Context) {
 
 fn use_endfield_theme(style: &mut Style) {
     style.visuals.override_text_color = Some(colors::PRIMARY_TEXT.hex_color());
-    style.visuals.extreme_bg_color = colors::EXTREME_BG.hex_color()
+    style.visuals.extreme_bg_color = colors::BG.hex_color();
+    style.visuals.widgets.hovered.weak_bg_fill = colors::YELLOW_ACCENT.hex_color();
+    style.visuals.widgets.inactive.bg_stroke = Stroke {
+        width: 1.,
+        color: colors::SHADE2.hex_color(),
+        
+    };
     
+    style.visuals.selection.stroke = Stroke {
+        width: 1.,
+        color: colors::SHADE2.hex_color(),
+    }
+
 }

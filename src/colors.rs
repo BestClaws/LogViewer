@@ -14,6 +14,10 @@ pub static FOOTER: &str = "#1a1a1a";
 pub static SHADE1: &str = "#606060";
 pub static SHADE2: &str = "#848484";
 pub static SHADE3: &str = "#d3d3d3";
+pub static SECONDARY_TEXT_STRONG: &str = "#ffffff";
 
 
-pub static EXTREME_BG: &str = "#ffffff";
+
+
+pub static BG_CONTAINER: &str = "#dedbdc";
+pub static BG: &str = "#ffffff";

@@ -30,6 +30,7 @@ impl LogViewer {
 
     fn status_bar_ui(&mut self, ctx: &Context, ui: &mut Ui) {
         ui.horizontal(|ui| {
+            ui.style_mut().visuals.override_text_color = Some(colors::SECONDARY_TEXT_STRONG.hex_color());
             ui.label(format!("fps: {}", 1000 / self.t.elapsed().as_millis()));
             self.t = Instant::now();
             for info in &self.status_bar_infos {
@@ -71,7 +72,7 @@ impl LogViewer {
 
     fn search_results_ui(ui: &mut Ui, results: &Vec<HashMap<String, String>>) {
         let frame = egui::frame::Frame {
-            fill: colors::SHADE3.hex_color(),
+            fill: colors::BG_CONTAINER.hex_color(),
             inner_margin: egui::Margin::same(4.),
             rounding: egui::Rounding::same(4.),
             ..Default::default()
@@ -84,19 +85,15 @@ impl LogViewer {
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
                 if results.is_empty() {
-                    
+
                     ui.label("No results");
                     return;
                 }
                 let mut columns: Vec<&String> = results.get(0).unwrap().keys().collect();
                 columns.sort();
-
-                for column in 0..columns.len() {
-                    builder = builder.column(Column::auto()).resizable(true);
-                }
+                builder = builder.column(Column::remainder()).resizable(true);
 
                 builder
-                    .auto_shrink(true)
                     .min_scrolled_height(0.0)
                     .header(20.0, |mut header| {
                         for &columnName in &columns {
@@ -140,14 +137,7 @@ impl App for LogViewer {
         // central panel.
         egui::CentralPanel::default()
             .frame(egui::frame::Frame {
-                fill: "#ffffff".hex_color(),
                 inner_margin: egui::Margin::symmetric(10., 10.),
-                rounding: egui::Rounding {
-                    nw: 1.0,
-                    ne: 1.0,
-                    sw: 1.0,
-                    se: 1.0,
-                },
                 ..Default::default()
             })
             .show(ctx, |ui| {
