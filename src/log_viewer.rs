@@ -2,10 +2,11 @@ use crate::indexer::Indexer;
 use crate::{animal, colors};
 use eframe::epaint::text::TextWrapMode;
 use eframe::{App, Frame};
-use egui::{Context, Ui};
+use egui::{remap, Context, Pos2, Ui};
 use egui_extras::{Column, TableBuilder};
 use std::collections::HashMap;
 use egui_material_icons::icons;
+use egui_plot::{Line, Plot, PlotPoints};
 use tokio::time::Instant;
 use crate::animal::EatSpit;
 use crate::ext::string_ext::StringExt;
@@ -46,6 +47,7 @@ impl LogViewer {
                 );
             }
         });
+        
     }
 
     fn search_widget_ui(&mut self, ui: &mut Ui) {
@@ -87,6 +89,20 @@ impl LogViewer {
             corner_radius: egui::CornerRadius::same(4),
             ..Default::default()
         };
+
+        // Plot::new("measurement").show(ui, |ui| {
+        //     let circle_center = Pos2::new(0., 0.);
+        //     let circle_points: PlotPoints<'_> = (0..=10)
+        //         .map(|i| {
+        //             [
+        //                 i  as f64 * 0.,  i  as f64 * 0.
+        //             ]
+        //         })
+        //         .collect();
+        //     ui.line(Line::new(
+        //         circle_points
+        //     ));
+        // });
         frame.show(ui, |ui| {
             // search results
             egui::ScrollArea::both().show(ui, |ui| {
@@ -160,5 +176,6 @@ impl App for LogViewer {
                     Self::search_results_ui(ui, &mut self.results);
                 });
             });
+
     }
 }

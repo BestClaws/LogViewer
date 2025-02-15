@@ -1,0 +1,41 @@
+ok. so here's my language
+
+this is actually a splunk like language to search for stuff in logs.
+
+at its basic form. this is how it looks
+
+[ search hi ]
+
+this searches for hi.
+
+ a query will always start and end with [ and ] respectively.
+first letter inside query is the operation we want to do. here it is search any thing after search argument is the search expression
+
+in our case we're searching the term hi 
+| (pipe) symbol is used to feed output of one operation to other 
+
+[ search hi | fields x ]
+
+
+queries can contain sub queries
+
+
+[ search hi [search hello] | fields x]
+
+
+
+
+
+search expressions can be complex. likek
+
+hi AND how
+NOT how
+
+we can use paranthesis for precedence
+
+hi AND (how OR NOT hello)
+
+order of precedence in absent of paranthesis is
+
+
+NOT > AND > OR
