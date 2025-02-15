@@ -58,12 +58,33 @@
         {
           "type": "SYMBOL",
           "name": "expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lucene_query"
         }
       ]
     },
     "subquery": {
       "type": "SYMBOL",
       "name": "query"
+    },
+    "lucene_query": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "`"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^``]+"
+        },
+        {
+          "type": "STRING",
+          "value": "`"
+        }
+      ]
     },
     "expression": {
       "type": "PREC_RIGHT",

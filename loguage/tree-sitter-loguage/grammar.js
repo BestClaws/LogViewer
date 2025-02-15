@@ -27,9 +27,18 @@ module.exports = grammar({
     
     operation_arguments: $ => choice(
       $.expression,
+      $.lucene_query
     ),
 
     subquery: $ => $.query, // Nested queries inside arguments
+
+    lucene_query: $ => seq(
+      '`',
+      /[^``]+/,  // Match everything inside parentheses
+      '`'
+    ),
+
+ 
 
     expression: $ => prec.right(seq(
       $.term,

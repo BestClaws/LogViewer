@@ -24,6 +24,11 @@
     "fields": {}
   },
   {
+    "type": "lucene_query",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "operation",
     "named": true,
     "fields": {},
@@ -52,6 +57,10 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        },
+        {
+          "type": "lucene_query",
           "named": true
         }
       ]
@@ -126,6 +135,10 @@
   },
   {
     "type": "]",
+    "named": false
+  },
+  {
+    "type": "`",
     "named": false
   },
   {

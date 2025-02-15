@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use egui_material_icons::icons;
 use egui_plot::{Line, Plot, PlotPoints};
 use tokio::time::Instant;
+use log::{info, log};
 use crate::animal::EatSpit;
 use crate::ext::string_ext::StringExt;
 use crate::ext::ui_ext::UiExt;
@@ -24,12 +25,14 @@ impl LogViewer {
     pub(crate) fn new(cc: &eframe::CreationContext<'_>) -> Self {
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
-        Self {
+        let lv = Self {
             t: Instant::now(),
             search_query: "".to_string(),
             status_bar_infos: vec![String::from("indexing"), String::from("searching")],
             results: EatSpit::new(vec![]),
-        }
+        };
+        log::info!("done creating logviewer");
+        lv
     }
 
     fn status_bar_ui(&mut self, ctx: &Context, ui: &mut Ui) {
@@ -147,6 +150,8 @@ impl LogViewer {
         });
     }
 }
+
+
 
 impl App for LogViewer {
     fn update(&mut self, ctx: &Context, frame: &mut Frame) {
