@@ -20,17 +20,18 @@ module.exports = grammar({
 
     operation: $ => seq(
       $.operation_name,
-      $.operation_arguments
+      repeat1($.operation_argument),
     ),
 
     operation_name: $ => /\w+/, // Matches operations like 'search', 'fields', etc.
     
-    operation_arguments: $ => choice(
+    operation_argument: $ => choice(
       $.expression,
+      $.query,
       $.lucene_query
+      
     ),
 
-    subquery: $ => $.query, // Nested queries inside arguments
 
     lucene_query: $ => seq(
       '`',
@@ -45,10 +46,7 @@ module.exports = grammar({
       repeat(seq($.logical_operator, $.term))
     )),
 
-    term: $ => choice(
-      $.subquery,
-      /\w+/
-    ),
+    term: $ => /\w+/,
 
     logical_operator: $ => prec.left(choice(
       'AND',

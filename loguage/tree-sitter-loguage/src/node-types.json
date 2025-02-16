@@ -37,7 +37,7 @@
       "required": true,
       "types": [
         {
-          "type": "operation_arguments",
+          "type": "operation_argument",
           "named": true
         },
         {
@@ -48,7 +48,7 @@
     }
   },
   {
-    "type": "operation_arguments",
+    "type": "operation_argument",
     "named": true,
     "fields": {},
     "children": {
@@ -61,6 +61,10 @@
         },
         {
           "type": "lucene_query",
+          "named": true
+        },
+        {
+          "type": "query",
           "named": true
         }
       ]
@@ -88,34 +92,9 @@
     }
   },
   {
-    "type": "subquery",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "query",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "term",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "subquery",
-          "named": true
-        }
-      ]
-    }
+    "fields": {}
   },
   {
     "type": "AND",
