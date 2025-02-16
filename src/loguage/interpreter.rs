@@ -67,7 +67,7 @@ pub fn eval(source: &[u8], node: Node, data: &mut HashMap<&str, Val>) -> Val {
                         return Val::Nil;
                     }
                 }
-
+                info!("firing query to search engine: {}", compound_lucene_query);  
                 // TODO: performance implications
                 let mut indexer = Indexer::new();
                 let result = indexer

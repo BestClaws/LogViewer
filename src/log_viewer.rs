@@ -117,7 +117,6 @@ impl LogViewer {
                     .striped(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
-
                 let results = res.spit();
                 if results.is_empty() {
                     ui.label("No results");
@@ -125,9 +124,11 @@ impl LogViewer {
                 }
                 let mut columns: Vec<&String> = results.get(0).unwrap().keys().collect();
                 columns.sort();
-                builder = builder.column(Column::remainder()).resizable(true);
-
+                for i in 0..columns.len() {
+                    builder = builder.column(Column::remainder());
+                }
                 builder
+                    .resizable(true)
                     .min_scrolled_height(0.0)
                     .header(20.0, |mut header| {
                         for &columnName in &columns {

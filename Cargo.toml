@@ -22,6 +22,7 @@ log = "0.4.25"
 env_logger = "0.11.6"
 tree-sitter = "0.25.1"
 tree-sitter-loguage = { path="loguage/tree-sitter-loguage"}
+regex = "1.11.1"
 
 [build-dependencies]
 cc= "*"

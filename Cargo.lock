@@ -2277,6 +2277,7 @@ dependencies = [
  "image",
  "log",
  "rand 0.9.0",
+ "regex",
  "serde",
  "serde_json",
  "tantivy",
