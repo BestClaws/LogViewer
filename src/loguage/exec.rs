@@ -17,6 +17,6 @@ impl Loguage {
 
     pub fn exec(&mut self, source_code: &str) -> Val {
         let tree = self.parser.parse(source_code, None).unwrap();
-        eval(source_code.as_bytes(), tree.root_node(), &HashMap::new())
+        eval(source_code.as_bytes(), tree.root_node(), &mut HashMap::new())
     }
 }

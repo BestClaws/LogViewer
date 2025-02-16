@@ -29,13 +29,13 @@ fn main() {
     // keep the reactor running
     let _enter = async_runtime.enter();
 
-    // play();
-    boot_logviewer();
+    play();
+    // boot_logviewer();
 }
 
 fn play() {
     let mut loguage = Loguage::new();
-    let res = loguage.exec("[search `his` [search `hi`]");
+    let res = loguage.exec("[search `his` [search `api` | fields raws ]");
     println!("val : {:?}", res);
     
 }
