@@ -10,15 +10,16 @@ use egui::{remap, Context, Pos2, Ui};
 use egui_extras::{Column, TableBuilder};
 use egui_material_icons::icons;
 use egui_plot::{Line, Plot, PlotPoints};
-use log::{info, log};
+use log::{error, info, log};
 use std::collections::HashMap;
 use tokio::time::Instant;
+use crate::loguage::interpreter::Val;
 
 pub struct LogViewer {
     t: Instant,
     search_query: String,
     status_bar_infos: Vec<String>,
-    results: EatSpit<HashMap<String, Vec<String>>>,
+    results: EatSpit<Vec<HashMap<String, String>>>,
 }
 
 impl LogViewer {
@@ -29,7 +30,7 @@ impl LogViewer {
             t: Instant::now(),
             search_query: "".to_string(),
             status_bar_infos: vec![String::from("indexing"), String::from("searching")],
-            results: EatSpit::new(HashMap::new()),
+            results: EatSpit::new(vec![]),
         };
         log::info!("done creating logviewer");
         lv
@@ -63,14 +64,15 @@ impl LogViewer {
             {
                 let query = self.search_query.clone();
                 tokio::spawn(async move {
-                    Loguage::new().exec(&query);
-                    let mut indexer = Indexer::new();
-                    let result = indexer.query(query).into_iter().collect();
-                    match tx.send(result).await {
-                        Ok(_) => {}
-                        Err(e) => {
-                            println!("Error sending search result: {:?}", e);
+                    if let Val::SearchResults(result) = Loguage::new().exec(&query) {
+                        match tx.send(result).await {
+                            Ok(_) => {}
+                            Err(e) => {
+                                println!("Error sending search result: {:?}", e);
+                            }
                         }
+                    } else {
+                        error!("query failed");
                     }
                 });
             }
@@ -86,7 +88,8 @@ impl LogViewer {
         });
     }
 
-    fn search_results_ui(ui: &mut Ui, res: &mut EatSpit<HashMap<String, Vec<String>>>) {
+
+    fn search_results_ui(ui: &mut Ui, res: &mut EatSpit<Vec<HashMap<String, String>>>) {
         let frame = egui::frame::Frame {
             fill: colors::BG_CONTAINER.hex_color(),
             inner_margin: egui::Margin::same(4),
@@ -114,35 +117,33 @@ impl LogViewer {
                     .striped(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
-                let result_columns = res.spit();
-                if result_columns.is_empty() {
+
+                let results = res.spit();
+                if results.is_empty() {
                     ui.label("No results");
                     return;
                 }
-                let mut column_headers: Vec<&String> = result_columns.keys().collect();
-                column_headers.sort();
+                let mut columns: Vec<&String> = results.get(0).unwrap().keys().collect();
+                columns.sort();
                 builder = builder.column(Column::remainder()).resizable(true);
-                
-                
-                
-                let row_count = result_columns.values().next().unwrap().len();
+
                 builder
                     .min_scrolled_height(0.0)
                     .header(20.0, |mut header| {
-                        for &columnName in &column_headers {
+                        for &columnName in &columns {
                             header.col(|ui| {
                                 ui.strong(columnName);
                             });
                         }
                     })
                     .body(|mut body| {
-                        body.rows(20., row_count, |mut table_row| {
+                        body.rows(20., results.len(), |mut table_row| {
                             let row_index = table_row.index();
-                            // let result_row = &result_columns[row_index];
-                            for &columnName in &column_headers {
+                            let result_row = &results[row_index];
+                            for &columnName in &columns {
                                 table_row.col(|ui| {
                                     let val_row =
-                                        egui::Label::new("foo")
+                                        egui::Label::new(result_row.get(columnName).unwrap())
                                             .wrap_mode(TextWrapMode::Wrap);
                                     ui.add(val_row);
                                 });

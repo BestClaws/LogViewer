@@ -49,7 +49,7 @@ impl Indexer {
 
     }
 
-    pub fn query(&mut self, query: String) -> HashMap<String,Vec<String>>  {
+    pub fn query(&mut self, query: String) -> Vec<HashMap<String,String>>  {
 
         let index = Index::open_in_dir("./data/indexes").unwrap();
 
@@ -62,14 +62,14 @@ impl Indexer {
         let query_parser = QueryParser::for_index(&index, vec![self.timestamp, self.raw]);
         let query = query_parser.parse_query(&query).unwrap();
         let top_docs = searcher.search(&query, &TopDocs::with_limit(1_000)).unwrap();
-       
-         let raw_records = top_docs.into_iter().map(move |(_, doc_address)| {
+        top_docs.into_iter().map(move |(_, doc_address)| {
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address).unwrap();
-             retrieved_doc.get_first(self.raw).unwrap().as_str().unwrap().to_string()
-        }).collect::<Vec<String>>();
-        
-        let mut results = HashMap::new();
-        results.insert("raw".to_string(), raw_records);
-        results
+            let raw = retrieved_doc.get_first(self.raw).unwrap().as_str().unwrap().to_string();
+
+            let mut record = HashMap::default();
+            record.insert("raw".to_string(), raw);
+            record
+
+        }).collect::<Vec<HashMap<String,String>>>()
     }
 }

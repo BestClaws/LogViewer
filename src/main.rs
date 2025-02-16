@@ -29,15 +29,15 @@ fn main() {
     // keep the reactor running
     let _enter = async_runtime.enter();
 
-    play();
-    // boot_logviewer();
+    // play();
+    boot_logviewer();
 }
 
 fn play() {
     let mut loguage = Loguage::new();
-    let res = loguage.exec("[search `his` [search `api` | fields raws ]");
+    let res = loguage.exec("[search `api` | fields raw | lucene ]");
     println!("val : {:?}", res);
-    
+
 }
 
 

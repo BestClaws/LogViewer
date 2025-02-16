@@ -1,14 +1,13 @@
 use crate::indexer::Indexer;
 use log::{error, info, warn};
 use std::collections::HashMap;
-use std::hash::Hash;
 use tree_sitter::Node;
 
 #[derive(Debug)]
 pub enum Val {
     Operation,
     LuceneQuery(String),
-    SearchResults(HashMap<String, Vec<String>>),
+    SearchResults(Vec<HashMap<String, String>>),
     Nil,
 }
 
@@ -23,8 +22,7 @@ pub fn eval(source: &[u8], node: Node, data: &mut HashMap<&str, Val>) -> Val {
                     continue;
                 }
                 let result = eval(&source, operation, &mut data);
-                info!("Operation: Value = {}", operation);
-                // info!("Operation: Value = {}: {:?}", operation.utf8_text(&source).unwrap(), result);
+                info!("[Operation: {}] [Value:{:?}]", operation.utf8_text(&source).unwrap(), result);
                 data.insert("last_output", result);
             }
 
@@ -75,12 +73,11 @@ pub fn eval(source: &[u8], node: Node, data: &mut HashMap<&str, Val>) -> Val {
                 let result = indexer
                     .query(compound_lucene_query)
                     .into_iter()
-                    .collect::<HashMap<String, Vec<String>>>();
+                    .collect::<Vec<HashMap<String, String>>>();
                 info!("result: {:?}", result);
                 Val::SearchResults(result)
             } else if operation_name == "fields" {
                 let mut filter_terms = vec![];
-
                 for argument in arguments {
                     // operation_argument -> expression -> term
                     let expression = argument.child(0).unwrap();
@@ -100,13 +97,10 @@ pub fn eval(source: &[u8], node: Node, data: &mut HashMap<&str, Val>) -> Val {
                 // operate and return
                 let result = match last_output {
                     Some(Val::SearchResults(mut last_results)) => {
-                        filter_terms.iter().for_each(|term| {
-                            if let Some(_) = last_results.remove(*term) {
-                                info!("filtered term: {}", term);
-                            } else {
-                                info!(" did not filter term: {}", term);
-                            }
-                        });
+                        
+                        for result in last_results.iter_mut() {
+                            result.retain(|key, _| filter_terms.contains(&key.as_str()));
+                        }
                         info!("last output: {:?}", last_results);
                         Val::SearchResults(last_results)
                     }
@@ -119,30 +113,31 @@ pub fn eval(source: &[u8], node: Node, data: &mut HashMap<&str, Val>) -> Val {
                 result
             } else if operation_name == "lucene" {
                 let last_output = data.remove("last_output");
-                let result = match last_output {
+                match last_output {
                     Some(Val::SearchResults(mut last_results)) => {
-                        
-                        for (key) in last_results.keys() {
-                            let mut term_fields = vec![];
-                            for term in list {
+                        let mut compound_fields = vec![];
+                        for (result) in last_results {
+                            let mut fields = vec![];
+                            for (key, term) in result {
                                 // TODO: how to escape " in terms
                                 let mut term_field = String::new();
                                 term_field.push_str(&key);
                                 term_field.push_str(":\"");
                                 term_field.push_str(&term);
                                 term_field.push_str("\"");
-                                term_fields.push(term_field);
+                                fields.push(term_field);
                             }
-                            term_fields.join(" AND ");
+                            compound_fields.push(fields.join(" AND "));
                         }
-
-                        Val::Nil
+                        let compound_query = compound_fields.join(" OR ");
+                        info!("evaluated query by lucene: {:?}", compound_query);
+                        Val::LuceneQuery(format!("({})", compound_query))
                     }
                     _ => {
                         warn!("last output did not have results for fields to work on. it was instead: {:?}", last_output);
                         Val::Nil
                     }
-                };
+                }
             } else {
                 Val::Nil
             }
