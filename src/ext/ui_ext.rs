@@ -44,7 +44,6 @@ fn highlight_text(input: &str) -> LayoutJob {
             let end = cap.node.end_byte();
             let text = &input[start..end];
 
-            println!("Captured: {:?} -> {:?}", text, query.capture_names()[cap.index as usize]);
 
 
             if last_end < start {

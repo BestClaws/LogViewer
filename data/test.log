@@ -1,8 +1,8 @@
-2025-02-06 22:37:17.806 level=INFO logger=FooLogger, requestId=abc, message=failed
-2025-02-06 22:37:18.806 level=INFO logger=FooLogger, requestId=abc, message=API Request completed. URI=/v1/foo ContentLength=20
-2025-02-06 22:37:19.806 level=INFO logger=FooLogger, requestId=def, message=success
-2025-02-06 22:37:20.806 level=INFO logger=FooLogger, requestId=def, message=API Request completed. URI=/v1/foo ContentLength=20
-2025-02-06 22:37:17.806 level=INFO logger=FooLogger, requestId=ghi, message=failed
-2025-02-06 22:37:18.806 level=INFO logger=FooLogger, requestId=ghi, message=API Request completed. URI=/v1/bar ContentLength=20
-2025-02-06 22:37:19.806 level=INFO logger=FooLogger, requestId=jkl, message=success
-2025-02-06 22:37:20.806 level=INFO logger=FooLogger, requestId=jkl, message=API Request completed. URI=/v1/bar ContentLength=20
+2024-02-06T22:37:17.806Z level=INFO logger=FooLogger, requestId=abc, message=failed
+2024-02-06T22:37:18.806Z level=INFO logger=FooLogger, requestId=abc, message=API Request completed. URI=/v1/foo ContentLength=20
+2024-02-06T22:37:19.806Z level=INFO logger=FooLogger, requestId=def, message=success
+2024-02-06T22:37:20.806Z level=INFO logger=FooLogger, requestId=def, message=API Request completed. URI=/v1/foo ContentLength=20
+2024-02-06T22:37:21.806Z level=INFO logger=FooLogger, requestId=ghi, message=failed
+2024-02-06T22:37:22.806Z level=INFO logger=FooLogger, requestId=ghi, message=API Request completed. URI=/v1/bar ContentLength=20
+2024-02-06T22:37:23.806Z level=INFO logger=FooLogger, requestId=jkl, message=success
+2024-02-06T22:37:24.806Z level=INFO logger=FooLogger, requestId=jkl, message=API Request completed. URI=/v1/bar ContentLength=20
