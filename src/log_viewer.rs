@@ -84,7 +84,7 @@ impl LogViewer {
                 let mut indexer = Indexer::new();
                 indexer.index_logfile();
             }
-            ui.e_text_edit(&mut self.search_query);
+            ui.e_query_text_edit(&mut self.search_query);
         });
     }
 
