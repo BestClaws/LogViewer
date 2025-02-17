@@ -2,6 +2,7 @@ use crate::log_loader;
 use regex::Regex;
 use serde_json::Value as JsonValue;
 use std::collections::HashMap;
+use chrono::{NaiveDateTime, Utc};
 use tantivy::collector::TopDocs;
 use tantivy::query::QueryParser;
 use tantivy::schema::{Field, Schema, Value, INDEXED, STORED, TEXT};
@@ -50,9 +51,10 @@ impl Indexer {
 
         for (i, line) in lines.enumerate() {
             // Extract timestamp manually (always at the beginning)
-            if let Some((_time, rest)) = line.split_once(' ') {
+            if let Some((_time, rest)) = line.split_once(',') {
+                let _time = convert_to_iso8601(_time);
                 // TODO: performance implication
-                log_data.insert("_time".to_string(), _time.to_string());
+                log_data.insert("_time".to_string(), _time);
 
                 // Extract key-value pairs
                 for cap in key_value_pattern.captures_iter(rest) {
@@ -133,4 +135,15 @@ impl Indexer {
     fn field(&self, field: &str) -> Field {
         self.schema.get_field(field).unwrap()
     }
+}
+
+fn convert_to_iso8601(input: &str) -> String {
+    // Parse the input timestamp as NaiveDateTime (without timezone)
+    let naive_datetime = NaiveDateTime::parse_from_str(input, "%Y-%m-%d %H:%M:%S%.3f").unwrap();
+
+    // Convert to a DateTime with UTC timezone
+    let utc_datetime: chrono::DateTime<Utc> = chrono::DateTime::from_utc(naive_datetime, Utc);
+
+    // Format the DateTime in the ISO 8601 format with a 'Z' at the end for UTC
+    utc_datetime.to_rfc3339()
 }
