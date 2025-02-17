@@ -136,7 +136,7 @@ impl LogViewer {
         let chart = BarChart::new(bars).color(Color32::DARK_GREEN);
 
         Plot::new("time_distribution")
-            .clamp_grid(true)
+            .clamp_grid(false)
             .allow_zoom(true)
             .allow_drag(false)
             .allow_scroll(true)
