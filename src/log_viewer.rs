@@ -6,10 +6,10 @@ use crate::loguage::exec::Loguage;
 use crate::{animal, colors};
 use eframe::epaint::text::TextWrapMode;
 use eframe::{App, Frame};
-use egui::{remap, Context, Pos2, Ui};
+use egui::{remap, Color32, Context, Pos2, Ui};
 use egui_extras::{Column, TableBuilder};
 use egui_material_icons::icons;
-use egui_plot::{Line, Plot, PlotPoints};
+use egui_plot::{Bar, BarChart, Legend, Line, Plot, PlotPoints};
 use log::{error, info, log};
 use std::collections::HashMap;
 use tokio::time::Instant;
@@ -90,6 +90,55 @@ impl LogViewer {
 
 
     fn search_results_ui(ui: &mut Ui, res: &mut EatSpit<Vec<HashMap<String, String>>>) {
+
+        let results = res.spit();
+        
+        let bin_size_ms = 1000; // 1 second binning
+        let time_count = process_data(results, bin_size_ms);
+
+        // let mut chart = BarChart::new(
+        //     (-395..=395)
+        //         .step_by(10)
+        //         .map(|x| x as f64 * 0.01)
+        //         .map(|x| {
+        //             (
+        //                 x,
+        //                 (-x * x / 2.0).exp() / (2.0 * std::f64::consts::PI).sqrt(),
+        //             )
+        //         })
+        //         // The 10 factor here is purely for a nice 1:1 aspect ratio
+        //         .map(|(x, f)| Bar::new(x, f * 10.0).width(0.1))
+        //         .collect(),
+        // )
+        //     .color(Color32::LIGHT_BLUE);
+        //
+        //
+        //
+        // Plot::new("search_distribution")
+        //     .clamp_grid(true)
+        //     .allow_zoom(false)
+        //     .allow_drag(false)
+        //     .allow_scroll(false)
+        //     .show_grid(false)
+        //     .height(80.)
+        //     .show(ui, |plot_ui| plot_ui.bar_chart(chart));
+
+
+        let bars: Vec<Bar> = time_count.into_iter()
+            .map(|(time, count)| Bar::new(time, count).width(0.1)) // Adjust width as needed
+            .collect();
+
+        let chart = BarChart::new(bars).color(Color32::LIGHT_BLUE);
+
+        Plot::new("time_distribution")
+            .clamp_grid(true)
+            .allow_zoom(false)
+            .allow_drag(false)
+            .allow_scroll(false)
+            .show_grid(false)
+            .height(80.0)
+            .show(ui, |plot_ui| plot_ui.bar_chart(chart));
+
         let frame = egui::frame::Frame {
             fill: colors::BG_CONTAINER.hex_color(),
             inner_margin: egui::Margin::same(4),
@@ -97,19 +146,9 @@ impl LogViewer {
             ..Default::default()
         };
 
-        // Plot::new("measurement").show(ui, |ui| {
-        //     let circle_center = Pos2::new(0., 0.);
-        //     let circle_points: PlotPoints<'_> = (0..=10)
-        //         .map(|i| {
-        //             [
-        //                 i  as f64 * 0.,  i  as f64 * 0.
-        //             ]
-        //         })
-        //         .collect();
-        //     ui.line(Line::new(
-        //         circle_points
-        //     ));
-        // });
+
+
+
         frame.show(ui, |ui| {
             // search results
             egui::ScrollArea::both().show(ui, |ui| {
@@ -117,7 +156,6 @@ impl LogViewer {
                     .striped(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
 
-                let results = res.spit();
                 if results.is_empty() {
                     ui.label("No results");
                     return;
@@ -185,4 +223,33 @@ impl App for LogViewer {
                 });
             });
     }
+}
+
+
+
+
+fn process_data(data: &mut Vec<HashMap<String, String>>, bin_size_ms: u64) -> Vec<(f64, f64)> {
+    let mut counts: HashMap<u64, u64> = HashMap::new();
+
+    // Count occurrences of each time within the bin size
+    for entry in data {
+        if let Some(time_str) = entry.get("_time") {
+            // Parse the _time string to a u64 (epoch time in milliseconds)
+            if let Ok(time_millis) = time_str.parse::<u64>() {
+                // Floor the time to the nearest bin
+                let bin = time_millis / bin_size_ms;
+                *counts.entry(bin).or_insert(0) += 1;
+            }
+        }
+    }
+
+    // Convert to Vec of (time, count) pairs, scale the time to seconds
+    let mut time_count: Vec<(f64, f64)> = counts.into_iter()
+        .map(|(bin, count)| (bin as f64 * (bin_size_ms as f64 / 1000.0), count as f64)) // Convert time to seconds
+        .collect();
+
+    // Sort by time (ascending)
+    time_count.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    time_count
 }
