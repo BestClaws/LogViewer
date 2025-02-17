@@ -9,9 +9,10 @@ use eframe::{App, Frame};
 use egui::{remap, Color32, Context, Pos2, Ui};
 use egui_extras::{Column, TableBuilder};
 use egui_material_icons::icons;
-use egui_plot::{Bar, BarChart, Legend, Line, Plot, PlotPoints};
+use egui_plot::{Bar, BarChart, GridMark, Legend, Line, Plot, PlotPoints};
 use log::{error, info, log};
 use std::collections::HashMap;
+use std::ops::RangeInclusive;
 use tokio::time::Instant;
 use crate::loguage::interpreter::Val;
 
@@ -92,7 +93,7 @@ impl LogViewer {
     fn search_results_ui(ui: &mut Ui, res: &mut EatSpit<Vec<HashMap<String, String>>>) {
 
         let results = res.spit();
-        
+
         let bin_size_ms = 1000; // 1 second binning
         let time_count = process_data(results, bin_size_ms);
 
@@ -124,19 +125,24 @@ impl LogViewer {
         //     .show(ui, |plot_ui| plot_ui.bar_chart(chart));
 
 
+        // Format the timestamps for readable date/time
         let bars: Vec<Bar> = time_count.into_iter()
-            .map(|(time, count)| Bar::new(time, count).width(0.1)) // Adjust width as needed
+            .map(|(time, count)| {
+                let formatted_time = format_timestamp(time); // Format the time
+                Bar::new(time, count).width(0.1) // Add label with formatted time
+            })
             .collect();
 
-        let chart = BarChart::new(bars).color(Color32::LIGHT_BLUE);
+        let chart = BarChart::new(bars).color(Color32::DARK_GREEN);
 
         Plot::new("time_distribution")
             .clamp_grid(true)
-            .allow_zoom(false)
+            .allow_zoom(true)
             .allow_drag(false)
-            .allow_scroll(false)
-            .show_grid(false)
-            .height(80.0)
+            .allow_scroll(true)
+            .show_grid(true)
+            .height(120.0)
+            .x_axis_formatter(x_axis_formatter)
             .show(ui, |plot_ui| plot_ui.bar_chart(chart));
 
         let frame = egui::frame::Frame {
@@ -227,8 +233,12 @@ impl App for LogViewer {
 
 
 
+fn x_axis_formatter(mark: GridMark, _range: &RangeInclusive<f64>) -> String {
+    let timestamp = mark.value;
+    format_timestamp(timestamp)
+}
 
-fn process_data(data: &mut Vec<HashMap<String, String>>, bin_size_ms: u64) -> Vec<(f64, f64)> {
+fn process_data(data: &Vec<HashMap<String, String>>, bin_size_ms: u64) -> Vec<(f64, f64)> {
     let mut counts: HashMap<u64, u64> = HashMap::new();
 
     // Count occurrences of each time within the bin size
@@ -252,4 +262,11 @@ fn process_data(data: &mut Vec<HashMap<String, String>>, bin_size_ms: u64) -> Ve
     time_count.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
     time_count
+}
+
+use chrono::{NaiveDateTime, TimeZone, Utc};
+
+fn format_timestamp(epoch_secs: f64) -> String {
+    let naive_datetime = NaiveDateTime::from_timestamp(epoch_secs as i64, 0);
+    naive_datetime.format("%Y-%m-%d %H:%M:%S").to_string()
 }
